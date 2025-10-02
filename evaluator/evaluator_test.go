@@ -510,27 +510,6 @@ func TestToFloat(t *testing.T) {
 	}
 }
 
-func TestToString(t *testing.T) {
-	tests := []struct {
-		value    Value
-		expected string
-	}{
-		{42.0, "42"},
-		{3.14, "3.14"},
-		{"hello", "hello"},
-		{true, "true"},
-		{false, "false"},
-		{nil, "nil"},
-	}
-
-	for _, tt := range tests {
-		result := toString(tt.value)
-		if result != tt.expected {
-			t.Errorf("toString(%v) = %q, expected %q", tt.value, result, tt.expected)
-		}
-	}
-}
-
 func TestEquals(t *testing.T) {
 	tests := []struct {
 		a        Value

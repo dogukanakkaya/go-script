@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-script/ast"
 	"go-script/evaluator/builtins"
+	"go-script/internal"
 )
 
 type Value interface{}
@@ -39,6 +40,19 @@ type ReturnValue struct {
 type Environment struct {
 	store map[string]Value // Variables in this scope
 	outer *Environment     // Parent scope (nil for global scope)
+}
+
+// Global environment with built-in functions such as JSON namespace
+func NewGlobalEnvironment() *Environment {
+	env := NewEnvironment(nil)
+
+	jsonObj := make(Object)
+	for name, builtin := range builtins.GetJSON() {
+		jsonObj[name] = builtin
+	}
+	env.Set("JSON", jsonObj)
+
+	return env
 }
 
 func NewEnvironment(outer *Environment) *Environment {
@@ -327,10 +341,10 @@ func evalInfixExpression(node *ast.InfixExpression, env *Environment) Value {
 	switch node.Operator {
 	case "+":
 		if leftStr, ok := left.(string); ok {
-			return leftStr + toString(right)
+			return leftStr + internal.ToString(right)
 		}
 		if rightStr, ok := right.(string); ok {
-			return toString(left) + rightStr
+			return internal.ToString(left) + rightStr
 		}
 
 		return toFloat(left) + toFloat(right)
@@ -377,6 +391,7 @@ func evalAssignExpression(node *ast.AssignExpression, env *Environment) Value {
 //
 //	"add(5, 3)" → calls add function with arguments [5, 3]
 //	"print("hello")" → calls builtin print function
+//	"JSON.stringify(obj)" → calls JSON.stringify builtin
 func evalCallExpression(node *ast.CallExpression, env *Environment) Value {
 	// Check for builtin functions
 	if ident, ok := node.Function.(*ast.Identifier); ok {
@@ -390,6 +405,15 @@ func evalCallExpression(node *ast.CallExpression, env *Environment) Value {
 	}
 
 	function := Eval(node.Function, env)
+
+	// Check if it's a builtin from property access (like JSON.stringify)
+	if builtin, ok := function.(*builtins.Builtin); ok {
+		args := []interface{}{}
+		for _, arg := range node.Arguments {
+			args = append(args, Eval(arg, env))
+		}
+		return builtin.Fn(args...)
+	}
 
 	fn, ok := function.(*Function)
 	if !ok {
@@ -499,45 +523,6 @@ func toFloat(val Value) float64 {
 		return num
 	default:
 		return 0
-	}
-}
-
-func toString(val Value) string {
-	if val == nil {
-		return "nil"
-	}
-
-	switch v := val.(type) {
-	case string:
-		return v
-	case float64:
-		// Format integers without decimal point
-		if v == float64(int64(v)) {
-			return fmt.Sprintf("%d", int64(v))
-		}
-		return fmt.Sprintf("%v", v)
-	case bool:
-		if v {
-			return "true"
-		}
-		return "false"
-	case Object:
-		// Format object as {key: value, ...}
-		result := "{"
-		first := true
-		for k, val := range v {
-			if !first {
-				result += ", "
-			}
-			result += k + ": " + toString(val)
-			first = false
-		}
-		result += "}"
-		return result
-	case *Function:
-		return "[Function]"
-	default:
-		return fmt.Sprintf("%v", v)
 	}
 }
 

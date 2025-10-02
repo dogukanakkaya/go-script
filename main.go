@@ -33,7 +33,7 @@ func runFile(filename string) {
 		os.Exit(1)
 	}
 
-	env := evaluator.NewEnvironment(nil)
+	env := evaluator.NewGlobalEnvironment()
 
 	code := string(content)
 	if !runCode(code, env) {
@@ -42,7 +42,7 @@ func runFile(filename string) {
 }
 
 func runREPL() {
-	env := evaluator.NewEnvironment(nil)
+	env := evaluator.NewGlobalEnvironment()
 
 	fmt.Println("╔═══════════════════════════════════════════════════════╗")
 	fmt.Println("║   go-script REPL - JavaScript Interpreter             ║")
