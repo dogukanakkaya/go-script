@@ -141,7 +141,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.currentToken.Type {
-	case token.VAR:
+	case token.VAR, token.LET: // todo: for now var and let are treated the same and const is not implemented
 		return p.parseVarStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
@@ -160,10 +160,12 @@ func (p *Parser) parseStatement() ast.Statement {
 //
 // Syntax: var <identifier> = <expression>;
 //
+//	let <identifier> = <expression>;
+//
 // Examples:
 //
 //	"var x = 42;" → VarStatement{Name: "x", Value: NumberLiteral{42}}
-//	"var name = "John";" → VarStatement{Name: "name", Value: StringLiteral{"John"}}
+//	"let name = "John";" → VarStatement{Name: "name", Value: StringLiteral{"John"}}
 func (p *Parser) parseVarStatement() *ast.VarStatement {
 	stmt := &ast.VarStatement{}
 

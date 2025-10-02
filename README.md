@@ -1,4 +1,4 @@
-# Go-Script: A JavaScript-like Interpreter
+# Go-Script: A JavaScript Interpreter
 
 A JavaScript interpreter written in Go from scratch, featuring
 variables, functions, objects, loops, conditionals etc.

@@ -70,6 +70,7 @@ func TestLookupIdent_Keywords(t *testing.T) {
 		expected Type
 	}{
 		{"var", VAR},
+		{"let", LET},
 		{"function", FUNC},
 		{"if", IF},
 		{"else", ELSE},
@@ -133,7 +134,7 @@ func TestLookupIdent_CaseSensitive(t *testing.T) {
 
 func TestAllKeywordsInMap(t *testing.T) {
 	expectedKeywords := []string{
-		"var", "function", "if", "else", "while", "return", "true", "false",
+		"var", "let", "function", "if", "else", "while", "return", "true", "false",
 	}
 
 	for _, keyword := range expectedKeywords {
@@ -144,7 +145,7 @@ func TestAllKeywordsInMap(t *testing.T) {
 }
 
 func TestKeywordsMapSize(t *testing.T) {
-	expectedSize := 8
+	expectedSize := 9 // var, let, function, if, else, while, return, true, false
 
 	if len(keywords) != expectedSize {
 		t.Errorf("Expected %d keywords in map, got %d", expectedSize, len(keywords))

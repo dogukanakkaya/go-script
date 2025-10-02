@@ -449,12 +449,17 @@ func evalObjectLiteral(node *ast.ObjectLiteral, env *Environment) Value {
 func evalPropertyAccess(node *ast.PropertyAccess, env *Environment) Value {
 	object := Eval(node.Object, env)
 
-	obj, ok := object.(Object)
-	if !ok {
-		return nil
+	// Handle Object type (map[string]Value)
+	if obj, ok := object.(Object); ok {
+		return obj[node.Property]
 	}
 
-	return obj[node.Property]
+	// Handle map[string]interface{} (from builtins)
+	if obj, ok := object.(map[string]interface{}); ok {
+		return obj[node.Property]
+	}
+
+	return nil
 }
 
 func isTruthy(val Value) bool {

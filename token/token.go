@@ -45,6 +45,7 @@ const (
 
 	// Keywords - reserved words with special meaning
 	VAR    Type = "var"
+	LET    Type = "let"
 	FUNC   Type = "function"
 	IF     Type = "if"
 	ELSE   Type = "else"
@@ -59,6 +60,7 @@ const (
 //	When it sees "myVariable", it's not in the map, so it returns TokIdent
 var keywords = map[string]Type{
 	"var":      VAR,
+	"let":      LET,
 	"function": FUNC,
 	"if":       IF,
 	"else":     ELSE,

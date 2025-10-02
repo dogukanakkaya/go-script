@@ -144,7 +144,10 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.DOT, l.ch)
 	case '"':
 		tok.Type = token.STRING
-		tok.Literal = l.readString()
+		tok.Literal = l.readString('"')
+	case '\'':
+		tok.Type = token.STRING
+		tok.Literal = l.readString('\'')
 	default:
 		// Not a single-character token, check for multi-character tokens
 		if isLetter(l.ch) {
@@ -155,7 +158,7 @@ func (l *Lexer) NextToken() token.Token {
 		} else if isDigit(l.ch) {
 			tok.Type = token.NUMBER
 			tok.Literal = l.readNumber()
-			return tok 
+			return tok
 		} else {
 			// Unknown character - create an ILLEGAL token
 			tok = newToken(token.ILLEGAL, l.ch)
@@ -213,20 +216,20 @@ func (l *Lexer) readNumber() string {
 	return l.input[startPos : l.position-1]
 }
 
-// readString reads a string literal between double quotes.
+// readString reads a string literal between quotes (double or single).
 // It reads until it finds the closing quote or reaches EOF.
 //
-// Example: For input "hello world"
+// Example: For input "hello world" or 'hello world'
 //
 //	Input with quotes: "hello world"
 //	Returns: hello world (without quotes)
 //
 // Note: doesn't handle escape sequences: \n, \t, \"
-func (l *Lexer) readString() string {
-	startPos := l.position // position is already past the opening "
+func (l *Lexer) readString(quoteChar byte) string {
+	startPos := l.position // position is already past the opening quote
 	for {
 		l.readChar()
-		if l.ch == '"' || l.ch == 0 {
+		if l.ch == quoteChar || l.ch == 0 {
 			break
 		}
 	}
@@ -242,7 +245,6 @@ func (l *Lexer) readString() string {
 func isLetter(ch byte) bool {
 	return unicode.IsLetter(rune(ch)) || ch == '_'
 }
-
 
 // Example:
 //
