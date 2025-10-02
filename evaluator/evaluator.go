@@ -44,7 +44,7 @@ type Environment struct {
 
 // Global environment with built-in functions such as JSON namespace
 func NewGlobalEnvironment() *Environment {
-	env := NewEnvironment(nil)
+	env := New(nil)
 
 	jsonObj := make(Object)
 	for name, builtin := range builtins.GetJSON() {
@@ -55,7 +55,7 @@ func NewGlobalEnvironment() *Environment {
 	return env
 }
 
-func NewEnvironment(outer *Environment) *Environment {
+func New(outer *Environment) *Environment {
 	return &Environment{
 		store: make(map[string]Value),
 		outer: outer,
@@ -116,7 +116,7 @@ func (e *Environment) Update(name string, val Value) Value {
 // Example:
 //
 //	program := parser.ParseProgram()
-//	env := NewEnvironment(nil)
+//	env := New(nil)
 //	result := Eval(program, env)
 func Eval(node ast.Node, env *Environment) Value {
 	switch node := node.(type) {
@@ -226,7 +226,7 @@ func evalReturnStatement(node *ast.ReturnStatement, env *Environment) Value {
 func evalBlockStatement(block *ast.BlockStatement, env *Environment) Value {
 	var result Value
 
-	blockEnv := NewEnvironment(env)
+	blockEnv := New(env)
 
 	for _, statement := range block.Statements {
 		result = Eval(statement, blockEnv)
@@ -427,7 +427,7 @@ func evalCallExpression(node *ast.CallExpression, env *Environment) Value {
 
 	// Create new environment for function execution
 	// Parent is the function's closure environment (where it was defined)
-	fnEnv := NewEnvironment(fn.Env)
+	fnEnv := New(fn.Env)
 
 	// Bind parameters to argument values
 	for i, param := range fn.Parameters {

@@ -8,7 +8,7 @@ import (
 func testEval(input string) Value {
 	p := parser.New(input)
 	program := p.ParseProgram()
-	env := NewEnvironment(nil)
+	env := NewGlobalEnvironment()
 	return Eval(program, env)
 }
 
@@ -392,7 +392,7 @@ func TestEvalPropertyAccess(t *testing.T) {
 }
 
 func TestEnvironmentGet(t *testing.T) {
-	env := NewEnvironment(nil)
+	env := New(nil)
 	env.Set("x", 42.0)
 
 	val, ok := env.Get("x")
@@ -410,7 +410,7 @@ func TestEnvironmentGet(t *testing.T) {
 }
 
 func TestEnvironmentSet(t *testing.T) {
-	env := NewEnvironment(nil)
+	env := New(nil)
 
 	env.Set("x", 10.0)
 	val, ok := env.Get("x")
@@ -426,10 +426,10 @@ func TestEnvironmentSet(t *testing.T) {
 }
 
 func TestEnvironmentScoping(t *testing.T) {
-	outer := NewEnvironment(nil)
+	outer := New(nil)
 	outer.Set("x", 10.0)
 
-	inner := NewEnvironment(outer)
+	inner := New(outer)
 	inner.Set("y", 20.0)
 
 	// Inner scope can access outer variable
@@ -452,10 +452,10 @@ func TestEnvironmentScoping(t *testing.T) {
 }
 
 func TestEnvironmentUpdate(t *testing.T) {
-	outer := NewEnvironment(nil)
+	outer := New(nil)
 	outer.Set("x", 10.0)
 
-	inner := NewEnvironment(outer)
+	inner := New(outer)
 	inner.Update("x", 20.0)
 
 	// Update should modify outer scope

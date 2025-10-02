@@ -10,7 +10,9 @@ import (
 	"go-script/parser"
 )
 
-func runCode(code string, env *evaluator.Environment) bool {
+func runCode(code string) bool {
+	env := evaluator.NewGlobalEnvironment()
+
 	p := parser.New(code)
 	program := p.ParseProgram()
 
@@ -33,17 +35,13 @@ func runFile(filename string) {
 		os.Exit(1)
 	}
 
-	env := evaluator.NewGlobalEnvironment()
-
 	code := string(content)
-	if !runCode(code, env) {
+	if !runCode(code) {
 		os.Exit(1)
 	}
 }
 
 func runREPL() {
-	env := evaluator.NewGlobalEnvironment()
-
 	fmt.Println("╔═══════════════════════════════════════════════════════╗")
 	fmt.Println("║   go-script REPL - JavaScript Interpreter             ║")
 	fmt.Println("║   Type JavaScript code and press Enter to execute     ║")
@@ -71,7 +69,7 @@ func runREPL() {
 			return
 		}
 
-		runCode(line, env)
+		runCode(line)
 	}
 
 	if err := scanner.Err(); err != nil {
