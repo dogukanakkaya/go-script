@@ -29,6 +29,8 @@ func TestTokenTypeConstants(t *testing.T) {
 		{RPAREN, ")"},
 		{LBRACE, "{"},
 		{RBRACE, "}"},
+		{LBRACKET, "["},
+		{RBRACKET, "]"},
 		{COMMA, ","},
 		{SEMICOLON, ";"},
 		{COLON, ":"},

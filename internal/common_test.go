@@ -1,6 +1,8 @@
 package internal
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestToString(t *testing.T) {
 	tests := []struct {
@@ -26,7 +28,7 @@ func TestToString(t *testing.T) {
 }
 
 func TestToStringObject(t *testing.T) {
-	obj := map[string]interface{}{
+	obj := Object{
 		"name": "Alice",
 		"age":  30.0,
 	}
@@ -38,6 +40,17 @@ func TestToStringObject(t *testing.T) {
 
 	if result != valid1 && result != valid2 {
 		t.Errorf("ToString(object) = %q, expected %q or %q", result, valid1, valid2)
+	}
+}
+
+func TestToStringArray(t *testing.T) {
+	arr := Array{"hello", 5.0, true}
+
+	result := ToString(arr)
+	expected := "[hello, 5, true]"
+
+	if result != expected {
+		t.Errorf("ToString(array) = %q, expected %q", result, expected)
 	}
 }
 

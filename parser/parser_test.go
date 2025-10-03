@@ -512,6 +512,36 @@ func TestObjectLiteralParsing(t *testing.T) {
 	}
 }
 
+func TestArrayLiteralParsing(t *testing.T) {
+	input := `var arr = [1, 2, 3, 4];`
+
+	p := New(input)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 1 statement. got=%d",
+			len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.VarStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.VarStatement. got=%T",
+			program.Statements[0])
+	}
+
+	arrayLit, ok := stmt.Value.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("stmt.Value is not ast.ArrayLiteral. got=%T",
+			stmt.Value)
+	}
+
+	if len(arrayLit.Elements) != 4 {
+		t.Fatalf("array literal has wrong number of elements. got=%d",
+			len(arrayLit.Elements))
+	}
+}
+
 func TestPropertyAccessParsing(t *testing.T) {
 	input := "person.name"
 

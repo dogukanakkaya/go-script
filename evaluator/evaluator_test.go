@@ -366,6 +366,27 @@ func TestEvalObjectLiterals(t *testing.T) {
 	}
 }
 
+func TestEvalArrayLiterals(t *testing.T) {
+	input := `var arr = [1, 2, 3]; arr;`
+	result := testEval(input)
+
+	arr, ok := result.(Array)
+	if !ok {
+		t.Fatalf("Expected Array, got %T", result)
+	}
+
+	if len(arr) != 3 {
+		t.Errorf("Expected array of length 3, got %d", len(arr))
+	}
+
+	expectedValues := []float64{1, 2, 3}
+	for i, expected := range expectedValues {
+		if num, ok := arr[i].(float64); !ok || num != expected {
+			t.Errorf("At index %d: expected %v, got %v", i, expected, arr[i])
+		}
+	}
+}
+
 func TestEvalPropertyAccess(t *testing.T) {
 	tests := []struct {
 		input    string

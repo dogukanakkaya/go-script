@@ -397,6 +397,44 @@ func TestNextToken_ObjectLiteral(t *testing.T) {
 	}
 }
 
+func TestNextToken_ArrayLiteral(t *testing.T) {
+	input := `[1, 2, 3, "four", true]`
+
+	tests := []struct {
+		expectedType    token.Type
+		expectedLiteral string
+	}{
+		{token.LBRACKET, "["},
+		{token.NUMBER, "1"},
+		{token.COMMA, ","},
+		{token.NUMBER, "2"},
+		{token.COMMA, ","},
+		{token.NUMBER, "3"},
+		{token.COMMA, ","},
+		{token.STRING, "four"},
+		{token.COMMA, ","},
+		{token.TRUE, "true"},
+		{token.RBRACKET, "]"},
+		{token.EOF, ""},
+	}
+
+	l := New(input)
+
+	for i, tt := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != tt.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+				i, tt.expectedType, tok.Type)
+		}
+
+		if tok.Literal != tt.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+				i, tt.expectedLiteral, tok.Literal)
+		}
+	}
+}
+
 func TestNextToken_PropertyAccess(t *testing.T) {
 	input := `person.name obj.method()`
 

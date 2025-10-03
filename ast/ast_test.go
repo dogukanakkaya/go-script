@@ -321,6 +321,44 @@ func TestObjectLiteralCreation(t *testing.T) {
 	}
 }
 
+func TestArrayLiteralCreation(t *testing.T) {
+	arr := &ArrayLiteral{
+		Elements: []Expression{
+			&StringLiteral{Value: "hello"},
+			&NumberLiteral{Value: 5},
+			&BooleanLiteral{Value: true},
+		},
+	}
+
+	if len(arr.Elements) != 3 {
+		t.Errorf("ArrayLiteral should have 3 elements, got %d", len(arr.Elements))
+	}
+
+	strLit, ok := arr.Elements[0].(*StringLiteral)
+	if !ok {
+		t.Errorf("First element should be *StringLiteral, got %T", arr.Elements[0])
+	}
+	if strLit.Value != "hello" {
+		t.Errorf("First element value should be 'hello', got '%s'", strLit.Value)
+	}
+
+	numLit, ok := arr.Elements[1].(*NumberLiteral)
+	if !ok {
+		t.Errorf("Second element should be *NumberLiteral, got %T", arr.Elements[1])
+	}
+	if numLit.Value != 5 {
+		t.Errorf("Second element value should be 42, got %f", numLit.Value)
+	}
+
+	boolLit, ok := arr.Elements[2].(*BooleanLiteral)
+	if !ok {
+		t.Errorf("Third element should be *BooleanLiteral, got %T", arr.Elements[2])
+	}
+	if !boolLit.Value {
+		t.Error("Third element value should be true")
+	}
+}
+
 func TestPropertyAccessCreation(t *testing.T) {
 	propAccess := &PropertyAccess{
 		Object:   &Identifier{Name: "person"},
