@@ -1,23 +1,21 @@
-print("1. Variables and Arithmetic:");
+print("--- BASICS ---");
+
 var x = 10;
 var y = 20;
 var sum = x + y;
 print("x =", x, ", y =", y, ", x + y =", sum);
 
-print("2. String Operations:");
 var greeting = "Hello";
 var name = "World";
 var message = greeting + ", " + name + "!";
 print(message);
 
-print("3. Functions:");
 var multiply = function(a, b) {
     return a * b;
 };
 var result = multiply(6, 7);
 print("6 * 7 =", result);
 
-print("4. Conditionals:");
 var age = 25;
 if (age >= 18) {
     print("You are an adult");
@@ -25,7 +23,6 @@ if (age >= 18) {
     print("You are a minor");
 }
 
-print("5. Loops:");
 print("Counting from 1 to 5:");
 var i = 1;
 while (i <= 5) {
@@ -33,7 +30,6 @@ while (i <= 5) {
     i = i + 1;
 }
 
-print("6. Objects:");
 var person = {
     name: "Alice",
     age: 30,
@@ -43,7 +39,6 @@ print("Name:", person.name);
 print("Age:", person.age);
 print("City:", person.city);
 
-print("7. Recursion - Factorial:");
 var factorial = function(n) {
     if (n <= 1) {
         return 1;
@@ -52,7 +47,6 @@ var factorial = function(n) {
 };
 print("factorial(5) =", factorial(5));
 
-print("8. Closures:");
 var makeCounter = function() {
     var count = 0;
     return function() {
@@ -63,18 +57,60 @@ var makeCounter = function() {
 var counter = makeCounter();
 print("counter() =", counter());
 print("counter() =", counter());
-print("counter() =", counter());
 
-print("9. Boolean Operations:");
 print("true:", true);
 print("false:", false);
 print("!true:", !true);
 print("!false:", !false);
 
-print("10. Comparisons:");
 print("5 == 5:", 5 == 5);
 print("5 != 3:", 5 != 3);
 print("10 > 5:", 10 > 5);
 print("3 < 7:", 3 < 7);
 
-print("Completed");
+print("--- /BASICS ---");
+
+
+print("--- fetch/JSON ---");
+
+print("=== GET List of Posts ===")
+let response = fetch("https://jsonplaceholder.typicode.com/posts")
+print("Status:", response.status)
+print("OK:", response.ok)
+print("Body length:", response.body)
+print("")
+
+print("=== POST Request with JSON Body ===")
+let response2 = fetch("https://jsonplaceholder.typicode.com/posts", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({"title": "My Post", "body": "This is a test post", "userId": 1})
+})
+print("Status:", response2.status)
+print("OK:", response2.ok)
+print("Body:", response2.body)
+print("")
+
+print("=== Request with Custom Headers ===")
+let response3 = fetch("https://jsonplaceholder.typicode.com/posts/1", {
+    headers: {
+        "Accept": "application/json",
+        "User-Agent": "GoScript/1.0"
+    }
+})
+print("Status:", response3.status)
+print("OK:", response3.ok)
+print("Response Headers:", response3.headers)
+print("")
+
+print("=== Error Handling - Invalid URL ===")
+let response4 = fetch("not-a-valid-url")
+if (response4.error) {
+    print("Error:", response4.error)
+}
+print("")
+
+print("--- /fetch/JSON ---");
+
