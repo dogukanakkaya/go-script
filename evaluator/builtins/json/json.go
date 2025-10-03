@@ -3,16 +3,11 @@ package json
 import (
 	encodingjson "encoding/json"
 	"fmt"
+	"go-script/internal"
 )
 
-// Builtin represents a built-in function
-type Builtin struct {
-	Name string
-	Fn   func(args ...interface{}) interface{}
-}
-
 // JSON is a namespace object containing stringify and parse methods
-var JSON = map[string]*Builtin{
+var JSON = map[string]*internal.Builtin{
 	"stringify": Stringify,
 	"parse":     Parse,
 }
@@ -26,7 +21,7 @@ var JSON = map[string]*Builtin{
 //	let obj = { name: "Alice", age: 30 }
 //	let jsonStr = JSON.stringify(obj)
 //	print(jsonStr)  → {"age":30,"name":"Alice"}
-var Stringify = &Builtin{
+var Stringify = &internal.Builtin{
 	Name: "stringify",
 	Fn: func(args ...interface{}) interface{} {
 		if len(args) != 1 {
@@ -56,7 +51,7 @@ var Stringify = &Builtin{
 //	let jsonStr = '{"name":"Alice","age":30}'
 //	let obj = JSON.parse(jsonStr)
 //	print(obj.name)  → Alice
-var Parse = &Builtin{
+var Parse = &internal.Builtin{
 	Name: "parse",
 	Fn: func(args ...interface{}) interface{} {
 		if len(args) != 1 {

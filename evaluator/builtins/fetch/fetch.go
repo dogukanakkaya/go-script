@@ -10,12 +10,6 @@ import (
 	"time"
 )
 
-// Builtin represents a built-in function
-type Builtin struct {
-	Name string
-	Fn   func(args ...interface{}) interface{}
-}
-
 // Fetch is a built-in function that makes HTTP requests
 //
 // Syntax: fetch(url, options)
@@ -40,7 +34,7 @@ type Builtin struct {
 //	    },
 //	    body: '{"name": "Alice", "age": 30}'
 //	})
-var Fetch = &Builtin{
+var Fetch = &internal.Builtin{
 	Name: "fetch",
 	Fn: func(args ...interface{}) interface{} {
 		if len(args) < 1 || len(args) > 2 {

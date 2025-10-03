@@ -2,6 +2,11 @@ package internal
 
 import "fmt"
 
+type Builtin struct {
+	Name string
+	Fn   func(args ...interface{}) interface{}
+}
+
 func ToString(val interface{}) string {
 	if val == nil {
 		return "nil"

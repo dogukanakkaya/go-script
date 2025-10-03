@@ -407,7 +407,7 @@ func evalCallExpression(node *ast.CallExpression, env *Environment) Value {
 	function := Eval(node.Function, env)
 
 	// Check if it's a builtin from property access (like JSON.stringify)
-	if builtin, ok := function.(*builtins.Builtin); ok {
+	if builtin, ok := function.(*internal.Builtin); ok {
 		args := []interface{}{}
 		for _, arg := range node.Arguments {
 			args = append(args, Eval(arg, env))

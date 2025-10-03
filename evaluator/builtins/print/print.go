@@ -5,12 +5,6 @@ import (
 	"go-script/internal"
 )
 
-// Builtin represents a built-in function
-type Builtin struct {
-	Name string
-	Fn   func(args ...interface{}) interface{}
-}
-
 // Print is a built-in function that prints values to stdout
 //
 // Syntax: print(arg1, arg2, ...)
@@ -19,7 +13,7 @@ type Builtin struct {
 //
 //	print("Hello, World!")           → prints: Hello, World!
 //	print("x =", 42)                  → prints: x = 42
-var Print = &Builtin{
+var Print = &internal.Builtin{
 	Name: "print",
 	Fn: func(args ...interface{}) interface{} {
 		for i, arg := range args {
