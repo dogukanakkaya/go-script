@@ -2,11 +2,6 @@ package internal
 
 import "fmt"
 
-type Builtin struct {
-	Name string
-	Fn   func(args ...interface{}) interface{}
-}
-
 func ToString(val interface{}) string {
 	if val == nil {
 		return "nil"
@@ -26,7 +21,7 @@ func ToString(val interface{}) string {
 			return "true"
 		}
 		return "false"
-	case map[string]interface{}:
+	case Object:
 		// Format object as {key: value, ...}
 		result := "{"
 		first := true
@@ -38,6 +33,17 @@ func ToString(val interface{}) string {
 			first = false
 		}
 		result += "}"
+		return result
+	case Array:
+		// Format array as [elem1, elem2, ...]
+		result := "["
+		for i, elem := range v {
+			if i > 0 {
+				result += ", "
+			}
+			result += ToString(elem)
+		}
+		result += "]"
 		return result
 	default:
 		// Handle other types (functions, etc.)

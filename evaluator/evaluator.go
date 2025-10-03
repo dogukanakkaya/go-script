@@ -7,8 +7,6 @@ import (
 	"go-script/internal"
 )
 
-type Value interface{}
-
 // Function represents a runtime function value
 // It captures the function's parameters, body, and closure environment
 //
@@ -25,11 +23,10 @@ type Function struct {
 	Env        *Environment
 }
 
-type Object map[string]Value
-
-type ReturnValue struct {
-	Value Value
-}
+type Value = internal.Value
+type Object = internal.Object
+type Array = internal.Array
+type ReturnValue = internal.ReturnValue
 
 // Environment stores variables and handles scoping
 // Each new scope (function, block) creates a new Environment with a parent
@@ -158,6 +155,8 @@ func Eval(node ast.Node, env *Environment) Value {
 		return evalCallExpression(node, env)
 	case *ast.ObjectLiteral:
 		return evalObjectLiteral(node, env)
+	case *ast.ArrayLiteral:
+		return evalArrayLiteral(node, env)
 	case *ast.PropertyAccess:
 		return evalPropertyAccess(node, env)
 	}
@@ -462,6 +461,23 @@ func evalObjectLiteral(node *ast.ObjectLiteral, env *Environment) Value {
 	}
 
 	return obj
+}
+
+// evalArrayLiteral evaluates an array literal
+//
+// Example:
+//
+//	[1, 2, 3]
+//	→ []Value{1.0, 2.0, 3.0}
+func evalArrayLiteral(node *ast.ArrayLiteral, env *Environment) Value {
+	elements := make(Array, 0)
+
+	for _, elemNode := range node.Elements {
+		elem := Eval(elemNode, env)
+		elements = append(elements, elem)
+	}
+
+	return elements
 }
 
 // evalPropertyAccess evaluates object property access

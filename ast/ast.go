@@ -31,6 +31,7 @@ type VarStatement struct {
 	Value Expression
 }
 
+// for compile-time type safety
 func (vs *VarStatement) statementNode() {}
 
 type ReturnStatement struct {
@@ -131,6 +132,12 @@ type ObjectLiteral struct {
 }
 
 func (ol *ObjectLiteral) expressionNode() {}
+
+type ArrayLiteral struct {
+	Elements []Expression
+}
+
+func (al *ArrayLiteral) expressionNode() {}
 
 type PropertyAccess struct {
 	Object   Expression

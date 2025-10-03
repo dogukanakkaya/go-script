@@ -39,6 +39,8 @@ const (
 	RPAREN    Type = ")"
 	LBRACE    Type = "{"
 	RBRACE    Type = "}"
+	LBRACKET  Type = "["
+	RBRACKET  Type = "]"
 	COMMA     Type = ","
 	SEMICOLON Type = ";"
 	COLON     Type = ":"

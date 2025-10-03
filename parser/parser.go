@@ -379,6 +379,8 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 		leftExp = p.parseFunctionLiteral()
 	case token.LBRACE:
 		leftExp = p.parseObjectLiteral()
+	case token.LBRACKET:
+		leftExp = p.parseArrayLiteral()
 	default:
 		p.noPrefixParseFnError(p.currentToken.Type)
 		return nil
@@ -653,6 +655,41 @@ func (p *Parser) parseObjectLiteral() ast.Expression {
 	}
 
 	return obj
+}
+
+// parseArrayLiteral parses an array literal
+//
+// Example:
+//
+//	"[1, 2, 3]"
+//	→ ArrayLiteral{
+//	    Elements: [NumberLiteral{1}, NumberLiteral{2}, NumberLiteral{3}]
+//	  }
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{}
+	array.Elements = []ast.Expression{}
+
+	p.nextToken() // move past '['
+
+	// Handle empty array
+	if p.currentTokenIs(token.RBRACKET) {
+		return array
+	}
+
+	array.Elements = append(array.Elements, p.parseExpression(LOWEST))
+
+	// Parse remaining elements
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken() // consume comma
+		p.nextToken() // move to next element
+		array.Elements = append(array.Elements, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return array
 }
 
 // parsePropertyAccess parses object property access
