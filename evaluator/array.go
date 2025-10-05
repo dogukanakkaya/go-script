@@ -2,46 +2,11 @@ package evaluator
 
 import (
 	"go-script/environment"
+	"go-script/evaluator/builtins/array"
 	"go-script/internal"
 )
 
-// ArrayReference wraps an array to make it mutable
-// This allows array methods like push to modify the array in place
-type ArrayReference struct {
-	Elements *internal.Array
-}
-
-func NewArrayReference(elements internal.Array) *ArrayReference {
-	return &ArrayReference{Elements: &elements}
-}
-
-func (ar *ArrayReference) Get(index int) Value {
-	if index < 0 || index >= len(*ar.Elements) {
-		return nil
-	}
-	return (*ar.Elements)[index]
-}
-
-func (ar *ArrayReference) Set(index int, value Value) {
-	if index >= 0 && index < len(*ar.Elements) {
-		(*ar.Elements)[index] = value
-	}
-}
-
-func (ar *ArrayReference) Push(values ...Value) float64 {
-	*ar.Elements = append(*ar.Elements, values...)
-	return float64(len(*ar.Elements))
-}
-
-func (ar *ArrayReference) Length() float64 {
-	return float64(len(*ar.Elements))
-}
-
-func (ar *ArrayReference) GetElements() internal.Array {
-	return *ar.Elements
-}
-
-func GetArrayProperty(arr *ArrayReference, property string) Value {
+func GetArrayProperty(arr *array.ArrayReference, property string) Value {
 	switch property {
 	case "length":
 		return arr.Length()
@@ -56,7 +21,7 @@ func GetArrayProperty(arr *ArrayReference, property string) Value {
 	}
 }
 
-func createPushMethod(arr *ArrayReference) Value {
+func createPushMethod(arr *array.ArrayReference) Value {
 	return &internal.Builtin{
 		Fn: func(args ...interface{}) interface{} {
 			values := make([]Value, len(args))
@@ -68,7 +33,7 @@ func createPushMethod(arr *ArrayReference) Value {
 	}
 }
 
-func createMapMethod(arr *ArrayReference) Value {
+func createMapMethod(arr *array.ArrayReference) Value {
 	return &internal.Builtin{
 		Fn: func(args ...interface{}) interface{} {
 			if len(args) == 0 {
@@ -103,12 +68,12 @@ func createMapMethod(arr *ArrayReference) Value {
 				result = append(result, callbackResult)
 			}
 
-			return NewArrayReference(result)
+			return array.NewArrayReference(result)
 		},
 	}
 }
 
-func createFilterMethod(arr *ArrayReference) Value {
+func createFilterMethod(arr *array.ArrayReference) Value {
 	return &internal.Builtin{
 		Fn: func(args ...interface{}) interface{} {
 			if len(args) == 0 {
@@ -145,7 +110,7 @@ func createFilterMethod(arr *ArrayReference) Value {
 				}
 			}
 
-			return NewArrayReference(result)
+			return array.NewArrayReference(result)
 		},
 	}
 }

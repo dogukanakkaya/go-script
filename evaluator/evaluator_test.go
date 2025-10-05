@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"go-script/environment"
+	"go-script/evaluator/builtins/array"
 	"go-script/parser"
 	"testing"
 )
@@ -371,7 +372,7 @@ func TestEvalArrayLiterals(t *testing.T) {
 	input := `var arr = [1, 2, 3]; arr;`
 	result := testEval(input)
 
-	arrRef, ok := result.(*ArrayReference)
+	arrRef, ok := result.(*array.ArrayReference)
 	if !ok {
 		t.Fatalf("Expected *ArrayReference, got %T", result)
 	}
@@ -426,7 +427,7 @@ func TestEvalArrayIndexing(t *testing.T) {
 			}
 		case Array:
 			// Check if it's an ArrayReference
-			if arrRef, ok := result.(*ArrayReference); ok {
+			if arrRef, ok := result.(*array.ArrayReference); ok {
 				arr := *arrRef.Elements
 				if len(arr) != len(expected) {
 					t.Errorf("For %s: expected array length %d, got %d", tt.input, len(expected), len(arr))
@@ -490,7 +491,7 @@ func TestEvalArrayPush(t *testing.T) {
 	`
 	result2 := testEval(input2)
 
-	arrRef, ok := result2.(*ArrayReference)
+	arrRef, ok := result2.(*array.ArrayReference)
 	if !ok {
 		t.Fatalf("Expected *ArrayReference, got %T", result2)
 	}
@@ -515,7 +516,7 @@ func TestEvalArrayMap(t *testing.T) {
 	`
 	result := testEval(input)
 
-	arrRef, ok := result.(*ArrayReference)
+	arrRef, ok := result.(*array.ArrayReference)
 	if !ok {
 		t.Fatalf("Expected *ArrayReference, got %T", result)
 	}
@@ -540,7 +541,7 @@ func TestEvalArrayFilter(t *testing.T) {
 	`
 	result := testEval(input)
 
-	arrRef, ok := result.(*ArrayReference)
+	arrRef, ok := result.(*array.ArrayReference)
 	if !ok {
 		t.Fatalf("Expected *ArrayReference, got %T", result)
 	}
@@ -566,7 +567,7 @@ func TestEvalArrayChaining(t *testing.T) {
 	`
 	result := testEval(input)
 
-	arrRef, ok := result.(*ArrayReference)
+	arrRef, ok := result.(*array.ArrayReference)
 	if !ok {
 		t.Fatalf("Expected *ArrayReference, got %T", result)
 	}

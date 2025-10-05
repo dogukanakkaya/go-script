@@ -5,6 +5,7 @@ import (
 	"go-script/ast"
 	"go-script/environment"
 	"go-script/evaluator/builtins"
+	"go-script/evaluator/builtins/array"
 	"go-script/internal"
 )
 
@@ -401,7 +402,7 @@ func evalArrayLiteral(node *ast.ArrayLiteral, env *environment.Environment) Valu
 		elements = append(elements, elem)
 	}
 
-	return NewArrayReference(elements)
+	return array.NewArrayReference(elements)
 }
 
 // evalIndexExpression evaluates array or object index access
@@ -422,7 +423,7 @@ func evalIndexExpression(node *ast.IndexExpression, env *environment.Environment
 	}
 
 	// Handle ArrayReference type (mutable arrays)
-	if arr, ok := left.(*ArrayReference); ok {
+	if arr, ok := left.(*array.ArrayReference); ok {
 		idx, ok := index.(float64)
 		if !ok {
 			return nil
@@ -452,7 +453,7 @@ func evalPropertyAccess(node *ast.PropertyAccess, env *environment.Environment) 
 	object := Eval(node.Object, env)
 
 	// Handle ArrayReference type - support array properties and methods
-	if arr, ok := object.(*ArrayReference); ok {
+	if arr, ok := object.(*array.ArrayReference); ok {
 		return GetArrayProperty(arr, node.Property)
 	}
 
