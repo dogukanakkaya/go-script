@@ -1,6 +1,9 @@
 package evaluator
 
-import "go-script/internal"
+import (
+	"go-script/environment"
+	"go-script/internal"
+)
 
 // ArrayReference wraps an array to make it mutable
 // This allows array methods like push to modify the array in place
@@ -79,7 +82,7 @@ func createMapMethod(arr *ArrayReference) Value {
 
 			result := make(Array, 0, len(*arr.Elements))
 			for i, elem := range *arr.Elements {
-				callbackEnv := New(fn.Env)
+				callbackEnv := environment.New(fn.Env)
 
 				if len(fn.Parameters) > 0 {
 					callbackEnv.Set(fn.Parameters[0], elem)
@@ -119,7 +122,7 @@ func createFilterMethod(arr *ArrayReference) Value {
 
 			result := make(Array, 0)
 			for i, elem := range *arr.Elements {
-				callbackEnv := New(fn.Env)
+				callbackEnv := environment.New(fn.Env)
 
 				if len(fn.Parameters) > 0 {
 					callbackEnv.Set(fn.Parameters[0], elem)

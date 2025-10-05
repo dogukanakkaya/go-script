@@ -6,12 +6,13 @@ import (
 	"os"
 	"strings"
 
+	"go-script/environment"
 	"go-script/evaluator"
 	"go-script/parser"
 )
 
 func runCode(code string) bool {
-	env := evaluator.NewGlobalEnvironment()
+	env := environment.NewGlobalEnvironment()
 
 	p := parser.New(code)
 	program := p.ParseProgram()

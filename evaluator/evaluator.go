@@ -3,6 +3,7 @@ package evaluator
 import (
 	"fmt"
 	"go-script/ast"
+	"go-script/environment"
 	"go-script/evaluator/builtins"
 	"go-script/internal"
 )
@@ -20,7 +21,7 @@ import (
 type Function struct {
 	Parameters []string
 	Body       *ast.BlockStatement
-	Env        *Environment
+	Env        *environment.Environment
 }
 
 type Value = internal.Value
@@ -36,7 +37,7 @@ type ReturnValue = internal.ReturnValue
 //	program := parser.ParseProgram()
 //	env := New(nil)
 //	result := Eval(program, env)
-func Eval(node ast.Node, env *Environment) Value {
+func Eval(node ast.Node, env *environment.Environment) Value {
 	switch node := node.(type) {
 	case *ast.Program:
 		return evalProgram(node, env)
@@ -94,7 +95,7 @@ func Eval(node ast.Node, env *Environment) Value {
 //  1. Evaluate "var x = 5" (stores x in environment)
 //  2. Evaluate "x + 3" (returns 8)
 //  3. Return 8 as final result
-func evalProgram(program *ast.Program, env *Environment) Value {
+func evalProgram(program *ast.Program, env *environment.Environment) Value {
 	var result Value
 
 	for _, statement := range program.Statements {
@@ -114,7 +115,7 @@ func evalProgram(program *ast.Program, env *Environment) Value {
 //
 //	"var x = 42;" → evaluates 42 and stores x = 42.0
 //	"var sum = 5 + 3;" → evaluates 5 + 3 and stores sum = 8.0
-func evalVarStatement(node *ast.VarStatement, env *Environment) Value {
+func evalVarStatement(node *ast.VarStatement, env *environment.Environment) Value {
 	var val Value = nil
 
 	if node.Value != nil {
@@ -129,7 +130,7 @@ func evalVarStatement(node *ast.VarStatement, env *Environment) Value {
 // Wraps the return value so it can bubble up through nested scopes
 //
 // Example: "return 42;" → ReturnValue{Value: 42.0}
-func evalReturnStatement(node *ast.ReturnStatement, env *Environment) Value {
+func evalReturnStatement(node *ast.ReturnStatement, env *environment.Environment) Value {
 	val := Eval(node.Value, env)
 	return &ReturnValue{Value: val}
 }
@@ -145,10 +146,10 @@ func evalReturnStatement(node *ast.ReturnStatement, env *Environment) Value {
 //	  x + y;
 //	}
 //	→ Creates new environment, evaluates statements, returns 15
-func evalBlockStatement(block *ast.BlockStatement, env *Environment) Value {
+func evalBlockStatement(block *ast.BlockStatement, env *environment.Environment) Value {
 	var result Value
 
-	blockEnv := New(env)
+	blockEnv := environment.New(env)
 
 	for _, statement := range block.Statements {
 		result = Eval(statement, blockEnv)
@@ -171,7 +172,7 @@ func evalBlockStatement(block *ast.BlockStatement, env *Environment) Value {
 //	  print("small");
 //	}
 //	→ Evaluates condition, executes appropriate branch
-func evalIfStatement(node *ast.IfStatement, env *Environment) Value {
+func evalIfStatement(node *ast.IfStatement, env *environment.Environment) Value {
 	condition := Eval(node.Condition, env)
 
 	if isTruthy(condition) {
@@ -193,7 +194,7 @@ func evalIfStatement(node *ast.IfStatement, env *Environment) Value {
 //	  x = x + 1;
 //	}
 //	→ Loops while condition is true
-func evalWhileStatement(node *ast.WhileStatement, env *Environment) Value {
+func evalWhileStatement(node *ast.WhileStatement, env *environment.Environment) Value {
 	var result Value
 
 	for {
@@ -215,7 +216,7 @@ func evalWhileStatement(node *ast.WhileStatement, env *Environment) Value {
 // evalIdentifier looks up a variable's value in the environment
 //
 // Example: "x" → looks up x in environment, returns its value
-func evalIdentifier(node *ast.Identifier, env *Environment) Value {
+func evalIdentifier(node *ast.Identifier, env *environment.Environment) Value {
 	val, ok := env.Get(node.Name)
 	if !ok {
 		return nil // Variable not found
@@ -230,7 +231,7 @@ func evalIdentifier(node *ast.Identifier, env *Environment) Value {
 //	"-5" → -5.0
 //	"!true" → false
 //	"-x" → negation of x's value
-func evalPrefixExpression(node *ast.PrefixExpression, env *Environment) Value {
+func evalPrefixExpression(node *ast.PrefixExpression, env *environment.Environment) Value {
 	right := Eval(node.Right, env)
 
 	switch node.Operator {
@@ -256,7 +257,7 @@ func evalPrefixExpression(node *ast.PrefixExpression, env *Environment) Value {
 //	"4 * 3" → 12.0
 //	"x == 5" → true or false
 //	"hello" + " world" → "hello world"
-func evalInfixExpression(node *ast.InfixExpression, env *Environment) Value {
+func evalInfixExpression(node *ast.InfixExpression, env *environment.Environment) Value {
 	left := Eval(node.Left, env)
 	right := Eval(node.Right, env)
 
@@ -301,7 +302,7 @@ func evalInfixExpression(node *ast.InfixExpression, env *Environment) Value {
 //
 // Example: "x = 42" → updates x to 42, returns 42
 // Note: Uses Update() to modify variables in parent scopes if they exist
-func evalAssignExpression(node *ast.AssignExpression, env *Environment) Value {
+func evalAssignExpression(node *ast.AssignExpression, env *environment.Environment) Value {
 	val := Eval(node.Value, env)
 	env.Update(node.Name, val)
 	return val
@@ -314,7 +315,7 @@ func evalAssignExpression(node *ast.AssignExpression, env *Environment) Value {
 //	"add(5, 3)" → calls add function with arguments [5, 3]
 //	"print("hello")" → calls builtin print function
 //	"JSON.stringify(obj)" → calls JSON.stringify builtin
-func evalCallExpression(node *ast.CallExpression, env *Environment) Value {
+func evalCallExpression(node *ast.CallExpression, env *environment.Environment) Value {
 	// Check for builtin functions
 	if ident, ok := node.Function.(*ast.Identifier); ok {
 		if builtin, ok := builtins.Get(ident.Name); ok {
@@ -349,7 +350,7 @@ func evalCallExpression(node *ast.CallExpression, env *Environment) Value {
 
 	// Create new environment for function execution
 	// Parent is the function's closure environment (where it was defined)
-	fnEnv := New(fn.Env)
+	fnEnv := environment.New(fn.Env)
 
 	// Bind parameters to argument values
 	for i, param := range fn.Parameters {
@@ -375,7 +376,7 @@ func evalCallExpression(node *ast.CallExpression, env *Environment) Value {
 //
 //	{ name: "John", age: 30 }
 //	→ Object{"name": "John", "age": 30.0}
-func evalObjectLiteral(node *ast.ObjectLiteral, env *Environment) Value {
+func evalObjectLiteral(node *ast.ObjectLiteral, env *environment.Environment) Value {
 	obj := make(Object)
 
 	for key, valueNode := range node.Pairs {
@@ -392,7 +393,7 @@ func evalObjectLiteral(node *ast.ObjectLiteral, env *Environment) Value {
 //
 //	[1, 2, 3]
 //	→ ArrayReference wrapping []Value{1.0, 2.0, 3.0}
-func evalArrayLiteral(node *ast.ArrayLiteral, env *Environment) Value {
+func evalArrayLiteral(node *ast.ArrayLiteral, env *environment.Environment) Value {
 	elements := make(Array, 0)
 
 	for _, elemNode := range node.Elements {
@@ -409,7 +410,7 @@ func evalArrayLiteral(node *ast.ArrayLiteral, env *Environment) Value {
 //
 //	arr[0] → gets first element of array
 //	obj["key"] → gets "key" property of object
-func evalIndexExpression(node *ast.IndexExpression, env *Environment) Value {
+func evalIndexExpression(node *ast.IndexExpression, env *environment.Environment) Value {
 	left := Eval(node.Left, env)
 	if left == nil {
 		return nil
@@ -447,7 +448,7 @@ func evalIndexExpression(node *ast.IndexExpression, env *Environment) Value {
 //
 //	person.name → looks up "name" property in person object
 //	obj.x → looks up "x" property in obj
-func evalPropertyAccess(node *ast.PropertyAccess, env *Environment) Value {
+func evalPropertyAccess(node *ast.PropertyAccess, env *environment.Environment) Value {
 	object := Eval(node.Object, env)
 
 	// Handle ArrayReference type - support array properties and methods

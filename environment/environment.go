@@ -1,6 +1,9 @@
-package evaluator
+package environment
 
-import "go-script/evaluator/builtins"
+import (
+	"go-script/evaluator/builtins"
+	"go-script/internal"
+)
 
 // Environment stores variables and handles scoping
 // Each new scope (function, block) creates a new Environment with a parent
@@ -9,7 +12,7 @@ import "go-script/evaluator/builtins"
 //
 //	Function scope can access global variables through the parent chain
 type Environment struct {
-	store map[string]Value // Variables in this scope
+	store map[string]internal.Value // Variables in this scope
 	outer *Environment     // Parent scope (nil for global scope)
 }
 
@@ -17,7 +20,7 @@ type Environment struct {
 func NewGlobalEnvironment() *Environment {
 	env := New(nil)
 
-	jsonObj := make(Object)
+	jsonObj := make(internal.Object)
 	for name, builtin := range builtins.GetJSON() {
 		jsonObj[name] = builtin
 	}
@@ -28,7 +31,7 @@ func NewGlobalEnvironment() *Environment {
 
 func New(outer *Environment) *Environment {
 	return &Environment{
-		store: make(map[string]Value),
+		store: make(map[string]internal.Value),
 		outer: outer,
 	}
 }
@@ -40,7 +43,7 @@ func New(outer *Environment) *Environment {
 //  1. Check current scope
 //  2. If not found, check parent scope
 //  3. Continue up the chain until found or reach global scope
-func (e *Environment) Get(name string) (Value, bool) {
+func (e *Environment) Get(name string) (internal.Value, bool) {
 	val, ok := e.store[name]
 	if !ok && e.outer != nil {
 		// Not in this scope, check parent scope
@@ -49,7 +52,7 @@ func (e *Environment) Get(name string) (Value, bool) {
 	return val, ok
 }
 
-func (e *Environment) Set(name string, val Value) Value {
+func (e *Environment) Set(name string, val internal.Value) internal.Value {
 	e.store[name] = val
 	return val
 }
@@ -62,7 +65,7 @@ func (e *Environment) Set(name string, val Value) Value {
 //
 //	global has x = 5
 //	In a nested scope: Update("x", 10) → updates x in global scope to 10
-func (e *Environment) Update(name string, val Value) Value {
+func (e *Environment) Update(name string, val internal.Value) internal.Value {
 	// Check if variable exists in current scope
 	if _, ok := e.store[name]; ok {
 		e.store[name] = val
