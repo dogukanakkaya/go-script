@@ -145,3 +145,10 @@ type PropertyAccess struct {
 }
 
 func (pa *PropertyAccess) expressionNode() {}
+
+type IndexExpression struct {
+	Left  Expression // The array or object being indexed
+	Index Expression // The index value
+}
+
+func (ie *IndexExpression) expressionNode() {}

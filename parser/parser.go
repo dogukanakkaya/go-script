@@ -21,19 +21,20 @@ const (
 )
 
 var precedences = map[token.Type]int{
-	token.ASSIGN: ASSIGN,
-	token.EQ:     EQUALS,
-	token.NEQ:    EQUALS,
-	token.LT:     LESSGREATER,
-	token.GT:     LESSGREATER,
-	token.LTE:    LESSGREATER,
-	token.GTE:    LESSGREATER,
-	token.PLUS:   SUM,
-	token.MINUS:  SUM,
-	token.SLASH:  PRODUCT,
-	token.STAR:   PRODUCT,
-	token.LPAREN: CALL,
-	token.DOT:    CALL,
+	token.ASSIGN:   ASSIGN,
+	token.EQ:       EQUALS,
+	token.NEQ:      EQUALS,
+	token.LT:       LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.LTE:      LESSGREATER,
+	token.GTE:      LESSGREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.SLASH:    PRODUCT,
+	token.STAR:     PRODUCT,
+	token.LPAREN:   CALL,
+	token.DOT:      CALL,
+	token.LBRACKET: CALL,
 }
 
 type Parser struct {
@@ -400,6 +401,9 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 		case token.DOT:
 			p.nextToken()
 			leftExp = p.parsePropertyAccess(leftExp)
+		case token.LBRACKET:
+			p.nextToken()
+			leftExp = p.parseIndexExpression(leftExp)
 		case token.ASSIGN:
 			p.nextToken()
 			leftExp = p.parseAssignExpression(leftExp)
@@ -705,6 +709,25 @@ func (p *Parser) parsePropertyAccess(object ast.Expression) ast.Expression {
 	}
 
 	exp.Property = p.currentToken.Literal
+
+	return exp
+}
+
+// parseIndexExpression parses array or object indexing
+//
+// Example:
+//
+//	"arr[0]" → IndexExpression{Left: Identifier{"arr"}, Index: NumberLiteral{0}}
+//	"obj[key]" → IndexExpression{Left: Identifier{"obj"}, Index: Identifier{"key"}}
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	exp := &ast.IndexExpression{Left: left}
+
+	p.nextToken()
+	exp.Index = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
 
 	return exp
 }

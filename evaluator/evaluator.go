@@ -159,6 +159,8 @@ func Eval(node ast.Node, env *Environment) Value {
 		return evalArrayLiteral(node, env)
 	case *ast.PropertyAccess:
 		return evalPropertyAccess(node, env)
+	case *ast.IndexExpression:
+		return evalIndexExpression(node, env)
 	}
 
 	return nil
@@ -480,6 +482,48 @@ func evalArrayLiteral(node *ast.ArrayLiteral, env *Environment) Value {
 	return elements
 }
 
+// evalIndexExpression evaluates array or object index access
+//
+// Example:
+//
+//	arr[0] → gets first element of array
+//	obj["key"] → gets "key" property of object
+func evalIndexExpression(node *ast.IndexExpression, env *Environment) Value {
+	left := Eval(node.Left, env)
+	if left == nil {
+		return nil
+	}
+
+	index := Eval(node.Index, env)
+	if index == nil {
+		return nil
+	}
+
+	// Handle Array type
+	if arr, ok := left.(Array); ok {
+		idx, ok := index.(float64)
+		if !ok {
+			return nil
+		}
+		i := int(idx)
+		if i < 0 || i >= len(arr) {
+			return nil // undefined behavior for out of bounds
+		}
+		return arr[i]
+	}
+
+	// Handle Object type (string indexing)
+	if obj, ok := left.(Object); ok {
+		key, ok := index.(string)
+		if !ok {
+			return nil
+		}
+		return obj[key]
+	}
+
+	return nil
+}
+
 // evalPropertyAccess evaluates object property access
 //
 // Example:
@@ -489,13 +533,13 @@ func evalArrayLiteral(node *ast.ArrayLiteral, env *Environment) Value {
 func evalPropertyAccess(node *ast.PropertyAccess, env *Environment) Value {
 	object := Eval(node.Object, env)
 
-	// Handle Object type (map[string]Value)
-	if obj, ok := object.(Object); ok {
-		return obj[node.Property]
+	// Handle Array type - support array properties
+	if arr, ok := object.(Array); ok {
+		return GetArrayProperty(arr, node.Property)
 	}
 
-	// Handle map[string]interface{} (from builtins)
-	if obj, ok := object.(map[string]interface{}); ok {
+	// Handle Object type (map[string]Value)
+	if obj, ok := object.(Object); ok {
 		return obj[node.Property]
 	}
 

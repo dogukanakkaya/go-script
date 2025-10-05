@@ -378,6 +378,51 @@ func TestPropertyAccessCreation(t *testing.T) {
 	}
 }
 
+func TestIndexExpressionCreation(t *testing.T) {
+	tests := []struct {
+		name        string
+		left        Expression
+		index       Expression
+		description string
+	}{
+		{
+			name:        "array indexing",
+			left:        &Identifier{Name: "arr"},
+			index:       &NumberLiteral{Value: 0},
+			description: "arr[0]",
+		},
+		{
+			name:        "object indexing with string",
+			left:        &Identifier{Name: "obj"},
+			index:       &StringLiteral{Value: "key"},
+			description: "obj[\"key\"]",
+		},
+		{
+			name:        "indexing with identifier",
+			left:        &Identifier{Name: "arr"},
+			index:       &Identifier{Name: "i"},
+			description: "arr[i]",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			idxExpr := &IndexExpression{
+				Left:  tt.left,
+				Index: tt.index,
+			}
+
+			if idxExpr.Left == nil {
+				t.Error("IndexExpression.Left should not be nil")
+			}
+
+			if idxExpr.Index == nil {
+				t.Error("IndexExpression.Index should not be nil")
+			}
+		})
+	}
+}
+
 func TestInterfaceImplementation(t *testing.T) {
 	var _ Statement = (*VarStatement)(nil)
 	var _ Statement = (*ReturnStatement)(nil)
@@ -397,6 +442,7 @@ func TestInterfaceImplementation(t *testing.T) {
 	var _ Expression = (*CallExpression)(nil)
 	var _ Expression = (*ObjectLiteral)(nil)
 	var _ Expression = (*PropertyAccess)(nil)
+	var _ Expression = (*IndexExpression)(nil)
 }
 
 func TestComplexAST(t *testing.T) {

@@ -623,3 +623,50 @@ func TestBlockStatement(t *testing.T) {
 			len(block.Statements))
 	}
 }
+
+func TestIndexExpressionParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"arr[0]", "array indexing with number"},
+		{"arr[1 + 1]", "array indexing with expression"},
+		{"obj[\"key\"]", "object indexing with string"},
+		{"arr[i]", "array indexing with identifier"},
+		{"matrix[0][1]", "nested array indexing"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.expected, func(t *testing.T) {
+			p := New(tt.input)
+			program := p.ParseProgram()
+			checkParserErrors(t, p)
+
+			if len(program.Statements) != 1 {
+				t.Fatalf("program.Statements does not contain 1 statement. got=%d",
+					len(program.Statements))
+			}
+
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+					program.Statements[0])
+			}
+
+			// For nested indexing, the outer expression is an IndexExpression
+			idxExpr, ok := stmt.Expression.(*ast.IndexExpression)
+			if !ok {
+				t.Fatalf("stmt.Expression is not ast.IndexExpression. got=%T",
+					stmt.Expression)
+			}
+
+			if idxExpr.Left == nil {
+				t.Error("IndexExpression.Left should not be nil")
+			}
+
+			if idxExpr.Index == nil {
+				t.Error("IndexExpression.Index should not be nil")
+			}
+		})
+	}
+}

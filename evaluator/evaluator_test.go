@@ -581,3 +581,124 @@ func TestDivisionByZero(t *testing.T) {
 		t.Errorf("Expected 0.0 for division by zero, got %v", result)
 	}
 }
+
+func TestArrayIndexing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected Value
+	}{
+		{"var arr = [1, 2, 3]; arr[0];", 1.0},
+		{"var arr = [1, 2, 3]; arr[1];", 2.0},
+		{"var arr = [1, 2, 3]; arr[2];", 3.0},
+		{"var arr = [10, 20, 30]; arr[1 + 1];", 30.0},
+		{"var arr = [\"hello\", \"world\"]; arr[0];", "hello"},
+		{"var arr = [\"hello\", \"world\"]; arr[1];", "world"},
+		{"var arr = [true, false]; arr[0];", true},
+		{"var arr = [1, 2, 3]; arr[5];", nil},
+		{"var arr = [1, 2, 3]; arr[-1];", nil},
+	}
+
+	for _, tt := range tests {
+		result := testEval(tt.input)
+		switch exp := tt.expected.(type) {
+		case float64:
+			if num, ok := result.(float64); !ok || num != exp {
+				t.Errorf("For input %q: expected %v, got %v", tt.input, exp, result)
+			}
+		case string:
+			if str, ok := result.(string); !ok || str != exp {
+				t.Errorf("For input %q: expected %q, got %v", tt.input, exp, result)
+			}
+		case bool:
+			if b, ok := result.(bool); !ok || b != exp {
+				t.Errorf("For input %q: expected %v, got %v", tt.input, exp, result)
+			}
+		case nil:
+			if result != nil {
+				t.Errorf("For input %q: expected nil, got %v", tt.input, result)
+			}
+		}
+	}
+}
+
+func TestNestedArrayIndexing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"var matrix = [[1, 2], [3, 4]]; matrix[0][0];", 1.0},
+		{"var matrix = [[1, 2], [3, 4]]; matrix[0][1];", 2.0},
+		{"var matrix = [[1, 2], [3, 4]]; matrix[1][0];", 3.0},
+		{"var matrix = [[1, 2], [3, 4]]; matrix[1][1];", 4.0},
+	}
+
+	for _, tt := range tests {
+		result := testEval(tt.input)
+		if num, ok := result.(float64); !ok || num != tt.expected {
+			t.Errorf("For input %q: expected %v, got %v", tt.input, tt.expected, result)
+		}
+	}
+}
+
+func TestArrayLengthProperty(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"var arr = [1, 2, 3]; arr.length;", 3.0},
+		{"var arr = []; arr.length;", 0.0},
+		{"var arr = [\"a\", \"b\", \"c\", \"d\"]; arr.length;", 4.0},
+		{"[1, 2, 3, 4, 5].length;", 5.0},
+	}
+
+	for _, tt := range tests {
+		result := testEval(tt.input)
+		if num, ok := result.(float64); !ok || num != tt.expected {
+			t.Errorf("For input %q: expected %v, got %v", tt.input, tt.expected, result)
+		}
+	}
+}
+
+func TestObjectIndexing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected Value
+	}{
+		{"var obj = { name: \"John\", age: 30 }; obj[\"name\"];", "John"},
+		{"var obj = { name: \"John\", age: 30 }; obj[\"age\"];", 30.0},
+		{"var obj = { x: 10 }; var key = \"x\"; obj[key];", 10.0},
+	}
+
+	for _, tt := range tests {
+		result := testEval(tt.input)
+		switch exp := tt.expected.(type) {
+		case float64:
+			if num, ok := result.(float64); !ok || num != exp {
+				t.Errorf("For input %q: expected %v, got %v", tt.input, exp, result)
+			}
+		case string:
+			if str, ok := result.(string); !ok || str != exp {
+				t.Errorf("For input %q: expected %q, got %v", tt.input, exp, result)
+			}
+		}
+	}
+}
+
+func TestArrayIndexingInExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"var arr = [5, 10, 15]; arr[0] + arr[1];", 15.0},
+		{"var arr = [5, 10, 15]; arr[1] * 2;", 20.0},
+		{"var arr = [1, 2, 3]; var i = 1; arr[i];", 2.0},
+		{"var arr = [10, 20, 30]; arr[arr.length - 1];", 30.0},
+	}
+
+	for _, tt := range tests {
+		result := testEval(tt.input)
+		if num, ok := result.(float64); !ok || num != tt.expected {
+			t.Errorf("For input %q: expected %v, got %v", tt.input, tt.expected, result)
+		}
+	}
+}
