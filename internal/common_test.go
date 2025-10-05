@@ -43,8 +43,18 @@ func TestToStringObject(t *testing.T) {
 	}
 }
 
+type MockArrayLike struct {
+	Elements Array
+}
+
+func (m MockArrayLike) GetElements() Array {
+	return m.Elements
+}
+
 func TestToStringArray(t *testing.T) {
-	arr := Array{"hello", 5.0, true}
+	arr := MockArrayLike{
+		Elements: Array{"hello", 5.0, true},
+	}
 
 	result := ToString(arr)
 	expected := "[hello, 5, true]"
