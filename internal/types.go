@@ -7,10 +7,14 @@ type Builtin struct {
 
 type Value interface{}
 
+type ReturnValue struct {
+	Value Value
+}
+
 type Object map[string]Value
 
 type Array []Value
 
-type ReturnValue struct {
-	Value Value
+type ArrayLike interface {
+	GetElements() Array
 }

@@ -2,6 +2,10 @@ print("--- BASICS ---");
 
 var arr = [10, 20, 30, 40, 50];
 print("Array:", arr);
+arr.push(60);
+print("After push(60):", arr);
+arr.push(70, 80);
+print("After push(70, 80):", arr);
 print("arr[0]:", arr[0]);
 print("arr[2]:", arr[2]);
 print("arr[4]:", arr[4]);
@@ -16,6 +20,21 @@ print("nested[0][1]:", nested[0][1]);
 
 let obj = { a: 1, b: 2, c: 3 };
 print(obj);
+
+var squared = arr.map(function(x) { return x * x; });
+print("Squared:", squared);
+
+var greaterThan3 = arr.filter(function(x) { return x > 3; });
+print("Greater than 3:", greaterThan3);
+
+var lessThan3 = arr.filter(function(x) { return x < 3; });
+print("Less than 3:", lessThan3);
+
+var result = arr
+    .map(function(x) { return x * 2; })
+    .filter(function(x) { return x > 40; })
+    .map(function(x) { return x + 10; });
+print("Chain result:", result);
 
 var x = 10;
 var y = 20;

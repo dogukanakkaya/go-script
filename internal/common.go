@@ -34,10 +34,11 @@ func ToString(val interface{}) string {
 		}
 		result += "}"
 		return result
-	case Array:
-		// Format array as [elem1, elem2, ...]
+	case ArrayLike:
+		// Format array-like types (e.g., ArrayReference)
+		elements := v.GetElements()
 		result := "["
-		for i, elem := range v {
+		for i, elem := range elements {
 			if i > 0 {
 				result += ", "
 			}

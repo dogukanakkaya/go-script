@@ -9,35 +9,29 @@ import (
 )
 
 func TestFetchSuccess(t *testing.T) {
-	// Create a test HTTP server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"message": "success"}`))
 	}))
 	defer server.Close()
 
-	// Call fetch with test server URL
 	result := Fetch.Fn(server.URL)
 
-	// Check result is a map
 	response, ok := result.(map[string]interface{})
 	if !ok {
 		t.Fatalf("Expected map[string]interface{}, got %T", result)
 	}
 
-	// Check status
 	status, ok := response["status"].(float64)
 	if !ok || status != 200 {
 		t.Errorf("Expected status 200, got %v", response["status"])
 	}
 
-	// Check body
 	body, ok := response["body"].(string)
 	if !ok || body != `{"message": "success"}` {
 		t.Errorf("Expected body %q, got %q", `{"message": "success"}`, body)
 	}
 
-	// Check ok field
 	okField, ok := response["ok"].(bool)
 	if !ok || !okField {
 		t.Errorf("Expected ok=true, got %v", response["ok"])
@@ -45,29 +39,24 @@ func TestFetchSuccess(t *testing.T) {
 }
 
 func TestFetchNotFound(t *testing.T) {
-	// Create a test HTTP server that returns 404
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`Not Found`))
 	}))
 	defer server.Close()
 
-	// Call fetch
 	result := Fetch.Fn(server.URL)
 
-	// Check result
 	response, ok := result.(map[string]interface{})
 	if !ok {
 		t.Fatalf("Expected map[string]interface{}, got %T", result)
 	}
 
-	// Check status
 	status, ok := response["status"].(float64)
 	if !ok || status != 404 {
 		t.Errorf("Expected status 404, got %v", response["status"])
 	}
 
-	// Check ok field (should be false for 404)
 	okField, ok := response["ok"].(bool)
 	if !ok || okField {
 		t.Errorf("Expected ok=false, got %v", response["ok"])
@@ -75,23 +64,19 @@ func TestFetchNotFound(t *testing.T) {
 }
 
 func TestFetchInvalidURL(t *testing.T) {
-	// Call fetch with invalid URL
 	result := Fetch.Fn("not-a-valid-url")
 
-	// Check result contains error
 	response, ok := result.(map[string]interface{})
 	if !ok {
 		t.Fatalf("Expected map[string]interface{}, got %T", result)
 	}
 
-	// Check error field exists
 	if _, hasError := response["error"]; !hasError {
 		t.Errorf("Expected error field in response, got %v", response)
 	}
 }
 
 func TestFetchNoArgs(t *testing.T) {
-	// Call fetch with no arguments
 	result := Fetch.Fn()
 
 	// Check result contains error
@@ -108,16 +93,13 @@ func TestFetchNoArgs(t *testing.T) {
 }
 
 func TestFetchTooManyArgs(t *testing.T) {
-	// Call fetch with too many arguments
 	result := Fetch.Fn("url1", "url2", "url3")
 
-	// Check result contains error
 	response, ok := result.(map[string]interface{})
 	if !ok {
 		t.Fatalf("Expected map[string]interface{}, got %T", result)
 	}
 
-	// Check error message
 	errorMsg, ok := response["error"].(string)
 	if !ok || errorMsg != "fetch requires 1 or 2 arguments (url, options?)" {
 		t.Errorf("Expected specific error message, got %q", errorMsg)
@@ -267,13 +249,11 @@ func TestFetchResponseHeaders(t *testing.T) {
 		t.Fatalf("Expected map[string]interface{}, got %T", result)
 	}
 
-	// Check headers exist
 	headers, ok := response["headers"].(map[string]interface{})
 	if !ok {
 		t.Fatalf("Expected headers to be map[string]interface{}, got %T", response["headers"])
 	}
 
-	// Check specific header
 	customHeader, exists := headers["X-Custom-Header"]
 	if !exists {
 		t.Errorf("Expected X-Custom-Header to exist in response headers")
@@ -282,7 +262,6 @@ func TestFetchResponseHeaders(t *testing.T) {
 		t.Errorf("Expected X-Custom-Header=test-value, got %v", customHeader)
 	}
 
-	// Check Content-Type header
 	contentType, exists := headers["Content-Type"]
 	if !exists {
 		t.Errorf("Expected Content-Type to exist in response headers")
@@ -294,12 +273,10 @@ func TestFetchResponseHeaders(t *testing.T) {
 
 func TestFetchComplexRequest(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Verify method
 		if r.Method != "POST" {
 			t.Errorf("Expected POST method, got %s", r.Method)
 		}
 
-		// Verify headers
 		if r.Header.Get("Content-Type") != "application/json" {
 			t.Errorf("Expected Content-Type header")
 		}
@@ -307,11 +284,9 @@ func TestFetchComplexRequest(t *testing.T) {
 			t.Errorf("Expected Authorization header")
 		}
 
-		// Read body
 		bodyBytes, _ := io.ReadAll(r.Body)
 		bodyStr := string(bodyBytes)
 
-		// Send response
 		w.Header().Set("X-Response-Id", "123")
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(`{"success": true, "echo": "` + bodyStr + `"}`))
@@ -333,7 +308,6 @@ func TestFetchComplexRequest(t *testing.T) {
 		t.Fatalf("Expected map[string]interface{}, got %T", result)
 	}
 
-	// Check status
 	status := response["status"].(float64)
 	if status != 201 {
 		t.Errorf("Expected status 201, got %v", status)
@@ -345,13 +319,11 @@ func TestFetchComplexRequest(t *testing.T) {
 		t.Errorf("Expected ok=true")
 	}
 
-	// Check body contains expected data
 	body := response["body"].(string)
 	if !bytes.Contains([]byte(body), []byte("success")) {
 		t.Errorf("Expected body to contain 'success', got %q", body)
 	}
 
-	// Check response headers
 	headers := response["headers"].(map[string]interface{})
 	if headers["X-Response-Id"] != "123" {
 		t.Errorf("Expected X-Response-Id=123, got %v", headers["X-Response-Id"])

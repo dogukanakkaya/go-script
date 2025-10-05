@@ -370,16 +370,212 @@ func TestEvalArrayLiterals(t *testing.T) {
 	input := `var arr = [1, 2, 3]; arr;`
 	result := testEval(input)
 
-	arr, ok := result.(Array)
+	arrRef, ok := result.(*ArrayReference)
 	if !ok {
-		t.Fatalf("Expected Array, got %T", result)
+		t.Fatalf("Expected *ArrayReference, got %T", result)
 	}
 
+	arr := *arrRef.Elements
 	if len(arr) != 3 {
 		t.Errorf("Expected array of length 3, got %d", len(arr))
 	}
 
 	expectedValues := []float64{1, 2, 3}
+	for i, expected := range expectedValues {
+		if num, ok := arr[i].(float64); !ok || num != expected {
+			t.Errorf("At index %d: expected %v, got %v", i, expected, arr[i])
+		}
+	}
+}
+
+func TestEvalArrayIndexing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`var arr = [1, 2, 3]; arr[0];`, 1.0},
+		{`var arr = [1, 2, 3]; arr[2];`, 3.0},
+		{`var arr = [10, 20, 30]; arr[1];`, 20.0},
+		{`var arr = [1, 2, 3]; arr[5];`, nil},
+		{`[[1, 2], [3, 4]][0];`, Array{1.0, 2.0}},
+		{`[[1, 2], [3, 4]][0][1];`, 2.0},
+		{`var obj = {key: "value"}; obj["key"];`, "value"},
+	}
+
+	for _, tt := range tests {
+		result := testEval(tt.input)
+
+		if tt.expected == nil {
+			if result != nil {
+				t.Errorf("For %s: expected nil, got %v", tt.input, result)
+			}
+			continue
+		}
+
+		switch expected := tt.expected.(type) {
+		case float64:
+			num, ok := result.(float64)
+			if !ok || num != expected {
+				t.Errorf("For %s: expected %v, got %v", tt.input, expected, result)
+			}
+		case string:
+			str, ok := result.(string)
+			if !ok || str != expected {
+				t.Errorf("For %s: expected %v, got %v", tt.input, expected, result)
+			}
+		case Array:
+			// Check if it's an ArrayReference
+			if arrRef, ok := result.(*ArrayReference); ok {
+				arr := *arrRef.Elements
+				if len(arr) != len(expected) {
+					t.Errorf("For %s: expected array length %d, got %d", tt.input, len(expected), len(arr))
+					continue
+				}
+				for i, exp := range expected {
+					if arr[i] != exp {
+						t.Errorf("For %s at index %d: expected %v, got %v", tt.input, i, exp, arr[i])
+					}
+				}
+			} else {
+				t.Errorf("For %s: expected *ArrayReference, got %T", tt.input, result)
+			}
+		}
+	}
+}
+
+func TestEvalArrayLength(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{`[].length;`, 0.0},
+		{`[1, 2, 3].length;`, 3.0},
+		{`var arr = [1, 2, 3, 4, 5]; arr.length;`, 5.0},
+		{`[[1, 2], [3, 4]].length;`, 2.0},
+	}
+
+	for _, tt := range tests {
+		result := testEval(tt.input)
+		num, ok := result.(float64)
+		if !ok || num != tt.expected {
+			t.Errorf("For %s: expected %v, got %v", tt.input, tt.expected, result)
+		}
+	}
+}
+
+func TestEvalArrayPush(t *testing.T) {
+	// Test that push returns the new length
+	input := `
+		var arr = [1, 2, 3];
+		var len = arr.push(4, 5);
+		len;
+	`
+	result := testEval(input)
+
+	length, ok := result.(float64)
+	if !ok {
+		t.Fatalf("Expected float64 (length), got %T", result)
+	}
+
+	if length != 5 {
+		t.Errorf("Expected length 5, got %v", length)
+	}
+
+	// Test that push modifies the array in place
+	input2 := `
+		var arr = [1, 2, 3];
+		arr.push(4, 5);
+		arr;
+	`
+	result2 := testEval(input2)
+
+	arrRef, ok := result2.(*ArrayReference)
+	if !ok {
+		t.Fatalf("Expected *ArrayReference, got %T", result2)
+	}
+
+	arr := *arrRef.Elements
+	expectedValues := []float64{1, 2, 3, 4, 5}
+	if len(arr) != len(expectedValues) {
+		t.Errorf("Expected array of length %d, got %d", len(expectedValues), len(arr))
+	}
+
+	for i, expected := range expectedValues {
+		if num, ok := arr[i].(float64); !ok || num != expected {
+			t.Errorf("At index %d: expected %v, got %v", i, expected, arr[i])
+		}
+	}
+}
+
+func TestEvalArrayMap(t *testing.T) {
+	input := `
+		var arr = [1, 2, 3, 4, 5];
+		arr.map(function(x) { return x * 2; });
+	`
+	result := testEval(input)
+
+	arrRef, ok := result.(*ArrayReference)
+	if !ok {
+		t.Fatalf("Expected *ArrayReference, got %T", result)
+	}
+
+	arr := *arrRef.Elements
+	expectedValues := []float64{2, 4, 6, 8, 10}
+	if len(arr) != len(expectedValues) {
+		t.Errorf("Expected array of length %d, got %d", len(expectedValues), len(arr))
+	}
+
+	for i, expected := range expectedValues {
+		if num, ok := arr[i].(float64); !ok || num != expected {
+			t.Errorf("At index %d: expected %v, got %v", i, expected, arr[i])
+		}
+	}
+}
+
+func TestEvalArrayFilter(t *testing.T) {
+	input := `
+		var arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+		arr.filter(function(x) { return x > 5; });
+	`
+	result := testEval(input)
+
+	arrRef, ok := result.(*ArrayReference)
+	if !ok {
+		t.Fatalf("Expected *ArrayReference, got %T", result)
+	}
+
+	arr := *arrRef.Elements
+	expectedValues := []float64{6, 7, 8, 9, 10}
+	if len(arr) != len(expectedValues) {
+		t.Errorf("Expected array of length %d, got %d", len(expectedValues), len(arr))
+	}
+
+	for i, expected := range expectedValues {
+		if num, ok := arr[i].(float64); !ok || num != expected {
+			t.Errorf("At index %d: expected %v, got %v", i, expected, arr[i])
+		}
+	}
+}
+
+func TestEvalArrayChaining(t *testing.T) {
+	input := `
+		[1, 2, 3, 4, 5]
+			.map(function(x) { return x * 2; })
+			.filter(function(x) { return x > 5; });
+	`
+	result := testEval(input)
+
+	arrRef, ok := result.(*ArrayReference)
+	if !ok {
+		t.Fatalf("Expected *ArrayReference, got %T", result)
+	}
+
+	arr := *arrRef.Elements
+	expectedValues := []float64{6, 8, 10}
+	if len(arr) != len(expectedValues) {
+		t.Errorf("Expected array of length %d, got %d", len(expectedValues), len(arr))
+	}
+
 	for i, expected := range expectedValues {
 		if num, ok := arr[i].(float64); !ok || num != expected {
 			t.Errorf("At index %d: expected %v, got %v", i, expected, arr[i])

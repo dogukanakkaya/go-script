@@ -470,7 +470,7 @@ func evalObjectLiteral(node *ast.ObjectLiteral, env *Environment) Value {
 // Example:
 //
 //	[1, 2, 3]
-//	→ []Value{1.0, 2.0, 3.0}
+//	→ ArrayReference wrapping []Value{1.0, 2.0, 3.0}
 func evalArrayLiteral(node *ast.ArrayLiteral, env *Environment) Value {
 	elements := make(Array, 0)
 
@@ -479,7 +479,7 @@ func evalArrayLiteral(node *ast.ArrayLiteral, env *Environment) Value {
 		elements = append(elements, elem)
 	}
 
-	return elements
+	return NewArrayReference(elements)
 }
 
 // evalIndexExpression evaluates array or object index access
@@ -499,17 +499,13 @@ func evalIndexExpression(node *ast.IndexExpression, env *Environment) Value {
 		return nil
 	}
 
-	// Handle Array type
-	if arr, ok := left.(Array); ok {
+	// Handle ArrayReference type (mutable arrays)
+	if arr, ok := left.(*ArrayReference); ok {
 		idx, ok := index.(float64)
 		if !ok {
 			return nil
 		}
-		i := int(idx)
-		if i < 0 || i >= len(arr) {
-			return nil // undefined behavior for out of bounds
-		}
-		return arr[i]
+		return arr.Get(int(idx))
 	}
 
 	// Handle Object type (string indexing)
@@ -533,13 +529,18 @@ func evalIndexExpression(node *ast.IndexExpression, env *Environment) Value {
 func evalPropertyAccess(node *ast.PropertyAccess, env *Environment) Value {
 	object := Eval(node.Object, env)
 
-	// Handle Array type - support array properties
-	if arr, ok := object.(Array); ok {
+	// Handle ArrayReference type - support array properties and methods
+	if arr, ok := object.(*ArrayReference); ok {
 		return GetArrayProperty(arr, node.Property)
 	}
 
 	// Handle Object type (map[string]Value)
 	if obj, ok := object.(Object); ok {
+		return obj[node.Property]
+	}
+
+	// Handle map[string]interface{} (e.g., from builtin functions like fetch)
+	if obj, ok := object.(map[string]interface{}); ok {
 		return obj[node.Property]
 	}
 
